@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<RevitAddIns>
+	<AddIn Type="Command">
+		<Name>Revit Utilities</Name>
+		<Assembly>Revit_Utilities.dll</Assembly>
+		<AddInId>
+			7E977739-DF28-4B48-8652-447EB099D42E
+		</AddInId>
+		<FullClassName>Revit_Utilities.AddSharedParameter</FullClassName>
+		<Text>Add Shared Parameter</Text>
+		<Description>Add an specified Shared Parameter to all the families in the current document</Description>
+		<VendorId>RS</VendorId>
+		<VendorDescription>Ricardo Salas</VendorDescription>
+		<VisibilityMode>AlwaysVisible</VisibilityMode>
+	</AddIn>
+</RevitAddIns>
