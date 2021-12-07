@@ -4,6 +4,7 @@ using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI;
 using MoreLinq;
+using Revit_Utilities.lib;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,7 +23,8 @@ namespace Revit_Utilities
             Application app = uiapp.Application;
 
             // Getting the current document
-            Document doc = uiapp.ActiveUIDocument.Document;
+            UIDocument uidoc = uiapp.ActiveUIDocument;
+            Document doc = uidoc.Document;
 
             // Getting all the instances in the model
             var allFamilyInstances = new FilteredElementCollector(doc).OfClass(typeof(FamilyInstance)).ToElements();
@@ -51,13 +53,53 @@ namespace Revit_Utilities
 
             // Getting the groups of parameters withing the SP file
             DefinitionGroups parameterGroups = spFile.Groups;
-            DefinitionGroup identityDataGroup = parameterGroups.get_Item("Identity Data");
+            DefinitionGroup generalGroup = parameterGroups.get_Item("General");
+            DefinitionGroup caseworkGroup = parameterGroups.get_Item("Casework");
+            DefinitionGroup LFGroup = parameterGroups.get_Item("Lighting Fixtures");
+            DefinitionGroup SEGroup = parameterGroups.get_Item("Specialty Equipment");
 
             // Getting the parameters within the selected group
-            Definitions parameters = identityDataGroup.Definitions;
+            Definitions generalParameters = generalGroup.Definitions;
+            Definitions caseworkParameters = caseworkGroup.Definitions;
+            Definitions LFParameters = LFGroup.Definitions;
+            Definitions SEParameters = SEGroup.Definitions;
 
-            // Getting the parameter to be added to each family
-            ExternalDefinition elementNameParam = parameters.get_Item("Element Name") as ExternalDefinition;
+            // Getting the parameter to be added to doors and windows families
+            IList<ExternalDefinition> dwMaterialParameters = new List<ExternalDefinition>();
+            dwMaterialParameters.Add(generalParameters.get_Item("Frame Material") as ExternalDefinition);
+            dwMaterialParameters.Add(generalParameters.get_Item("Handle Material") as ExternalDefinition);
+            dwMaterialParameters.Add(generalParameters.get_Item("Panel Material") as ExternalDefinition);
+            dwMaterialParameters.Add(generalParameters.get_Item("Glazing Material") as ExternalDefinition);
+
+            // Getting the parameter to be added to casework families
+            IList<ExternalDefinition> caseworkMaterialParameters = new List<ExternalDefinition>();
+            caseworkMaterialParameters.Add(generalParameters.get_Item("Frame Material") as ExternalDefinition);
+            caseworkMaterialParameters.Add(generalParameters.get_Item("Handle Material") as ExternalDefinition);
+            caseworkMaterialParameters.Add(generalParameters.get_Item("Panel Material") as ExternalDefinition);
+            caseworkMaterialParameters.Add(generalParameters.get_Item("Body Material") as ExternalDefinition);
+            caseworkMaterialParameters.Add(caseworkParameters.get_Item("Countertop Material") as ExternalDefinition);
+            caseworkMaterialParameters.Add(caseworkParameters.get_Item("Backsplash Material") as ExternalDefinition);
+
+            // Getting the parameter to be added to Lighting Fixture families
+            IList<ExternalDefinition> LFMaterialParameters = new List<ExternalDefinition>();
+            LFMaterialParameters.Add(generalParameters.get_Item("Secondary Material") as ExternalDefinition);
+            LFMaterialParameters.Add(LFParameters.get_Item("Light Source Material") as ExternalDefinition);
+            LFMaterialParameters.Add(generalParameters.get_Item("Body Material") as ExternalDefinition);
+
+            // Getting the parameter to be added to Electrical Devices families
+            IList<ExternalDefinition> EDMaterialParameters = new List<ExternalDefinition>();
+            EDMaterialParameters.Add(generalParameters.get_Item("Body Material") as ExternalDefinition);
+            EDMaterialParameters.Add(generalParameters.get_Item("Display Material") as ExternalDefinition);
+
+            // Getting the parameter to be added to Plumbing Fixtures families
+            IList<ExternalDefinition> PFMaterialParameters = new List<ExternalDefinition>();
+            PFMaterialParameters.Add(generalParameters.get_Item("Body Material") as ExternalDefinition);
+
+            // Getting the parameter to be added to Specialty Equipment families
+            IList<ExternalDefinition> SEMaterialParameters = new List<ExternalDefinition>();
+            SEMaterialParameters.Add(generalParameters.get_Item("Body Material") as ExternalDefinition);
+            SEMaterialParameters.Add(generalParameters.get_Item("Button Material") as ExternalDefinition);
+            SEMaterialParameters.Add(generalParameters.get_Item("Glazing Material") as ExternalDefinition);
 
             TransactionGroup tg = new TransactionGroup(doc, "Add Shared Parameter to Families");
             tg.Start();
@@ -67,37 +109,46 @@ namespace Revit_Utilities
 
             foreach (var family in distinctFamilies)
             {
-                // Opening the family in a background family editor
-                Document familyEditor = doc.EditFamily(family);
-                var familyManager = familyEditor.FamilyManager;
 
-                // Checks if parameter already exists in family
-                FamilyParameterSet parametersInFamily = familyManager.Parameters;
+                if (family.FamilyCategory.Name == "Doors" || family.FamilyCategory.Name == "Windows")
+                {
 
-                bool parameterExists = false;
-                foreach (FamilyParameter parameter in parametersInFamily)
-                {
-                    if (parameter.Definition.Name == elementNameParam.Name)
-                    {
-                        parameterExists = true;
-                        break;
-                    }
-                }
-                    
-                // If the parameter already exists, skip this family
-                if (parameterExists)
-                {
-                    continue;
+                    Document familyEditor = Helpers.AddParameterToFamily(doc, family, dwMaterialParameters);
+                    modifiedFamilies.Add(familyEditor);
+
                 }
 
-                // Adding the parameter to the family
-                Transaction fett = new Transaction(familyEditor, "Add Parameter");
-                fett.Start();
-                familyManager.AddParameter(elementNameParam, BuiltInParameterGroup.PG_IDENTITY_DATA, false);
-                fett.Commit();
+                if (family.FamilyCategory.Name == "Casework")
+                {
 
-                // Storing current editor for later import
-                modifiedFamilies.Add(familyEditor);
+                    Document familyEditor = Helpers.AddParameterToFamily(doc, family, caseworkMaterialParameters);
+                    modifiedFamilies.Add(familyEditor);
+
+                }
+
+                if (family.FamilyCategory.Name == "Lighting Fixtures")
+                {
+
+                    Document familyEditor = Helpers.AddParameterToFamily(doc, family, LFMaterialParameters);
+                    modifiedFamilies.Add(familyEditor);
+
+                }
+
+                if (family.FamilyCategory.Name == "Plumbing Fixtures")
+                {
+
+                    Document familyEditor = Helpers.AddParameterToFamily(doc, family, PFMaterialParameters);
+                    modifiedFamilies.Add(familyEditor);
+
+                }
+
+                if (family.FamilyCategory.Name == "Specialty Equipment")
+                {
+
+                    Document familyEditor = Helpers.AddParameterToFamily(doc, family, SEMaterialParameters);
+                    modifiedFamilies.Add(familyEditor);
+
+                }
 
             }
 
@@ -111,6 +162,7 @@ namespace Revit_Utilities
 
                     // Closing family editor
                     family.Close(false);
+                    family.Dispose();
                 }
                 catch (Exception ex)
                 {
