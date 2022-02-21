@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RevitAddIns>
+
+	<AddIn Type="Application">
+		<Name>RS Scripts</Name>
+		<Assembly>RS_Scripts.dll</Assembly>
+		<FullClassName>RS_Scripts.ExtApp</FullClassName>
+		<ClientId>7C2421AA-A0A4-4151-906C-505800D6C7C4</ClientId>
+		<VendorId>RS</VendorId>
+	</AddIn>
+
+</RevitAddIns>
