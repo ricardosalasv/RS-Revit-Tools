@@ -14,3 +14,4 @@ F:\Ricardo Salas\Arquitectura\Programas\Autodesk\Revit\Scripts\NET\RS-Revit-Tool
 F:\Ricardo Salas\Arquitectura\Programas\Autodesk\Revit\Scripts\NET\RS-Revit-Tools\RS_Scripts\bin\Debug\RS_Scripts.pdb
 F:\Ricardo Salas\Arquitectura\Programas\Autodesk\Revit\Scripts\NET\RS-Revit-Tools\RS_Scripts\obj\Debug\RS_Scripts.dll
 F:\Ricardo Salas\Arquitectura\Programas\Autodesk\Revit\Scripts\NET\RS-Revit-Tools\RS_Scripts\obj\Debug\RS_Scripts.pdb
+F:\Ricardo Salas\Arquitectura\Programas\Autodesk\Revit\Scripts\NET\RS-Revit-Tools\RS_Scripts\obj\Debug\RS_Scripts.csproj.AssemblyReference.cache
