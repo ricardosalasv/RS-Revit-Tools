@@ -1,5 +1,6 @@
 ﻿using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
+using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.UI.Selection;
 using System;
@@ -19,36 +20,56 @@ namespace RS_Scripts.Scripts
             Selection sel = commandData.Application.ActiveUIDocument.Selection;
 
             var selectedFaces = SelectFaces(doc, sel);
+            var selectedTopo = SelectTopo(doc, sel);
+
+            // Get the points from the toposurface
+            IList<XYZ> topoPoints = selectedTopo.GetPoints();
+
+            // [OPTIONAL] Get the boundary of each subregion to store them in memory and recreate them in the new toposurface
+            // TODO
+
+            // Get boundaries of faces to remove points within those boundaries
+            // TODO
+
+            // Compute and collect all the new points that will be added to the topography
+            IList<XYZ> newPoints = new List<XYZ>();
+            foreach (Face face in selectedFaces)
+            {
+                foreach (CurveLoop curveLoop in face.GetEdgesAsCurveLoops())
+                {
+                    // Evaluate points throughout all the surface of the face, for all topologies
+                    // TODO
+
+                    //foreach (Curve curve in curveLoop)
+                    //{
+                    //    for (double i = 0.01; i <= 0.99; i = i + 0.05)
+                    //    {
+                    //        newPoints.Add(curve.Evaluate(i, true));
+                    //    }
+                    //}
+                }
+            }
+
+            // Cleaning points that share the same X and Y coordinates. Prioritize removing points in a higher position
+            // TODO
+
+            // Adding points to the topography
 
             return Result.Succeeded;
         }
 
-        public IList<Reference> SelectFaces(Document doc, Selection sel)
+        private IList<Face> SelectFaces(Document doc, Selection sel)
         {
+            TaskDialog.Show("Instructions", "Please select the faces you want the topography to conform to...");
+
             try
             {
                 IList<Reference> selectedFaces = sel.PickObjects(ObjectType.Face, "Please select the face(s)");
 
-                IList<PlanarFace> faces = selectedFaces.Select(x => doc.GetElement(x).GetGeometryObjectFromReference(x) as PlanarFace).ToList();
-                IList<PlanarFace> nonVerticalFaces = faces.Select(x => x).Where(x => x.FaceNormal.Z != 0).ToList();
+                IList<Face> faces = selectedFaces.Select(x => doc.GetElement(x).GetGeometryObjectFromReference(x) as Face).ToList();
+                IList<Face> nonVerticalFaces = faces.Select(x => x).Where(x => x.ComputeNormal(new UV(0.5, 0.5)).Z != 0).ToList();
 
-                IList<XYZ> newPoints = new List<XYZ>();
-
-                foreach (var face in nonVerticalFaces)
-                {
-                    foreach (CurveLoop curveLoop in face.GetEdgesAsCurveLoops())
-                    {
-                        foreach (Curve curve in curveLoop)
-                        {
-                            for (double i = 0.01; i <= 0.99; i = i + 0.05)
-                            {
-                                newPoints.Add(curve.Evaluate(i, true));
-                            }
-                        }
-                    }
-                }
-
-                return selectedFaces;
+                return nonVerticalFaces;
             }
             catch (OperationCanceledException)
             {
@@ -56,6 +77,19 @@ namespace RS_Scripts.Scripts
                 return null;
             }
 
+        }
+
+        private TopographySurface SelectTopo(Document doc, Selection sel)
+        {
+            TaskDialog.Show("Instructions", "Please select the toposurface (the main toposurface, no subregions or pads)...");
+
+            Reference surfaceRef = sel.PickObject(ObjectType.Element, "Please select the toposurface");
+
+            Element surfaceElem = doc.GetElement(surfaceRef);
+
+            TopographySurface surface = surfaceElem as TopographySurface;
+
+            return surface;
         }
     }
 }
