@@ -28,27 +28,74 @@ namespace RS_Scripts.Scripts
             // [OPTIONAL] Get the boundary of each subregion to store them in memory and recreate them in the new toposurface
             // TODO
 
-            // Get boundaries of faces to remove points within those boundaries
-            // TODO
+            // ReferenceIntersector to detect
+            ReferenceIntersector ri = new ReferenceIntersector(
+                selectedFaces.Select(x => doc.GetElement(x.Reference).Id).ToList(), // Gets the Id of the element owning the face
+                // TODO: Cannot get an ElementId from a Face
+                FindReferenceTarget.Face,
+                doc.ActiveView as View3D
+                );
 
             // Compute and collect all the new points that will be added to the topography
             IList<XYZ> newPoints = new List<XYZ>();
+            IList<XYZ> topoPointsToDelete = new List<XYZ>();
+
             foreach (Face face in selectedFaces)
             {
-                foreach (CurveLoop curveLoop in face.GetEdgesAsCurveLoops())
-                {
-                    // Evaluate points throughout all the surface of the face, for all topologies
-                    // TODO
+                // Projects the topography points into the surface in order to
+                // detect what points are above or below the surface to delete them
+                // using the ReferenceIntersector
+                Surface surface = face.GetSurface();
 
-                    //foreach (Curve curve in curveLoop)
-                    //{
-                    //    for (double i = 0.01; i <= 0.99; i = i + 0.05)
-                    //    {
-                    //        newPoints.Add(curve.Evaluate(i, true));
-                    //    }
-                    //}
+                foreach (XYZ point in topoPoints)
+                {
+                    try
+                    {
+                        ReferenceWithContext riResult = ri.FindNearest(point, new XYZ(point.X, point.Y, -1));
+
+                        if (riResult == null)
+                        {
+                            riResult = ri.FindNearest(point, new XYZ(point.X, point.Y, 1));
+
+                            if (riResult == null)
+                            {
+                                continue;
+                            }
+                        }
+
+                        if (!topoPointsToDelete.Contains(point))
+                        {
+                            topoPointsToDelete.Add(point);
+                        }
+                    }
+                    catch (ArgumentNullException)
+                    {
+                        continue;
+                    }
                 }
+
+                // Gets the points from parametrized positions along the face
+                for (double u = 0; u <= 1; u += 0.05)
+                {
+                    for (double v = 0; v <= 1; v += 0.05)
+                    {
+                        UV evaluationParameter = new UV(u, v);
+                        XYZ point = face.Evaluate(evaluationParameter);
+
+                        // If the Z component of the normal at the point is positive, do not include it
+                        if (face.ComputeNormal(evaluationParameter).Z > 0)
+                        {
+                            continue;
+                        }
+
+                        newPoints.Add(point);
+                    }
+                }
+
             }
+
+            // Deletes the collected points from the topography
+            selectedTopo.DeletePoints(topoPointsToDelete);
 
             // Cleaning points that share the same X and Y coordinates. Prioritize removing points in a higher position
             // TODO
