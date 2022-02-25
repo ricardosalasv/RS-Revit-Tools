@@ -19,8 +19,8 @@ namespace RS_Scripts.Scripts
             Document doc = commandData.Application.ActiveUIDocument.Document;
             Selection sel = commandData.Application.ActiveUIDocument.Selection;
 
-            var selectedFaces = SelectFaces(doc, sel);
             var selectedTopo = SelectTopo(doc, sel);
+            var selectedFaces = SelectFaces(doc, sel, out IList<ElementId> selectedFacesIds);
 
             // Get the points from the toposurface
             IList<XYZ> topoPoints = selectedTopo.GetPoints();
@@ -30,9 +30,8 @@ namespace RS_Scripts.Scripts
 
             // ReferenceIntersector to detect
             ReferenceIntersector ri = new ReferenceIntersector(
-                selectedFaces.Select(x => doc.GetElement(x.Reference).Id).ToList(), // Gets the Id of the element owning the face
-                // TODO: Cannot get an ElementId from a Face
-                FindReferenceTarget.Face,
+                selectedFacesIds,
+                FindReferenceTarget.All,
                 doc.ActiveView as View3D
                 );
 
@@ -42,25 +41,17 @@ namespace RS_Scripts.Scripts
 
             foreach (Face face in selectedFaces)
             {
-                // Projects the topography points into the surface in order to
-                // detect what points are above or below the surface to delete them
-                // using the ReferenceIntersector
-                Surface surface = face.GetSurface();
 
                 foreach (XYZ point in topoPoints)
                 {
                     try
                     {
-                        ReferenceWithContext riResult = ri.FindNearest(point, new XYZ(point.X, point.Y, -1));
+                        XYZ origin = new XYZ(point.X, point.Y, 9999);
+                        ReferenceWithContext riResult = ri.FindNearest(origin, XYZ.BasisZ.Negate());
 
                         if (riResult == null)
                         {
-                            riResult = ri.FindNearest(point, new XYZ(point.X, point.Y, 1));
-
-                            if (riResult == null)
-                            {
-                                continue;
-                            }
+                            continue;
                         }
 
                         if (!topoPointsToDelete.Contains(point))
@@ -75,43 +66,92 @@ namespace RS_Scripts.Scripts
                 }
 
                 // Gets the points from parametrized positions along the face
-                for (double u = 0; u <= 1; u += 0.05)
+                XYZ pointToAdd = null;
+                double faceArea = face.Area / 128; // Division to reduce density
+                if (faceArea == 0)
                 {
-                    for (double v = 0; v <= 1; v += 0.05)
+                    faceArea = 20;
+                }
+                double resolution = 1 / faceArea;
+
+                double maxDimension = GetFaceMaximumDimension(face, out double uDim, out double vDim);
+                for (double u = 0; u <= maxDimension; u += resolution)
+                {
+                    for (double v = 0; v <= maxDimension; v += resolution)
                     {
-                        UV evaluationParameter = new UV(u, v);
-                        XYZ point = face.Evaluate(evaluationParameter);
+                        pointToAdd = EvaluateAndAddTopoPoint(new UV(u, v), face);
 
-                        // If the Z component of the normal at the point is positive, do not include it
-                        if (face.ComputeNormal(evaluationParameter).Z > 0)
-                        {
-                            continue;
-                        }
-
-                        newPoints.Add(point);
+                        if (pointToAdd == null) { continue; }
+                        newPoints.Add(pointToAdd);
                     }
                 }
-
+                // --- Adding points to last border and corner limited by precision ---
             }
 
-            // Deletes the collected points from the topography
-            selectedTopo.DeletePoints(topoPointsToDelete);
-
             // Cleaning points that share the same X and Y coordinates. Prioritize removing points in a higher position
-            // TODO
+            IList<XYZ> cleanedPoints = newPoints.OrderBy(p => p.Z)
+                .GroupBy(p => new { p.X, p.Y })
+                .Select(grp => grp.First()).ToList();
+
+            var test = cleanedPoints.GroupBy(p => new { p.X, p.Y });
+
+            TopographyEditScope topoEdit = new TopographyEditScope(doc, "Conform Topo to Faces");
+            topoEdit.Start(selectedTopo.Id);
+
+            Transaction tt = new Transaction(doc, "Edit Topography");
+            tt.Start();
+
+            // Deletes the collected points from the topography
+            if (topoPointsToDelete.Count > 0)
+            {
+                selectedTopo.DeletePoints(topoPointsToDelete);
+            }
 
             // Adding points to the topography
+            selectedTopo.AddPoints(cleanedPoints);
+
+            tt.Commit();
+            topoEdit.Commit(new TopoEditFailurePreprocessor());
 
             return Result.Succeeded;
         }
 
-        private IList<Face> SelectFaces(Document doc, Selection sel)
+        private double GetFaceMaximumDimension(Face face, out double u, out double v)
+        {
+            double max = 0;
+
+            BoundingBoxUV bb = face.GetBoundingBox();
+
+            u = bb.Max.U - bb.Min.U;
+            v = bb.Max.V - bb.Min.V;
+
+            if (u > v)
+            {
+                max = u;
+            }
+            else
+            {
+                max = v;
+            }
+
+            if (max == 0)
+            {
+                max = 50;
+            }
+
+            return max;
+        }
+
+        private IList<Face> SelectFaces(Document doc, Selection sel, out IList<ElementId> facesIds)
         {
             TaskDialog.Show("Instructions", "Please select the faces you want the topography to conform to...");
 
             try
             {
                 IList<Reference> selectedFaces = sel.PickObjects(ObjectType.Face, "Please select the face(s)");
+
+                facesIds = selectedFaces.GroupBy(x => x.ElementId.IntegerValue)
+                    .Select(grp => grp.First().ElementId).ToList(); // Select distinct ElementIds
 
                 IList<Face> faces = selectedFaces.Select(x => doc.GetElement(x).GetGeometryObjectFromReference(x) as Face).ToList();
                 IList<Face> nonVerticalFaces = faces.Select(x => x).Where(x => x.ComputeNormal(new UV(0.5, 0.5)).Z != 0).ToList();
@@ -120,6 +160,7 @@ namespace RS_Scripts.Scripts
             }
             catch (OperationCanceledException)
             {
+                facesIds = null;
                 TaskDialog.Show("Message", "The operation was canceled by the user");
                 return null;
             }
@@ -137,6 +178,33 @@ namespace RS_Scripts.Scripts
             TopographySurface surface = surfaceElem as TopographySurface;
 
             return surface;
+        }
+
+        private XYZ EvaluateAndAddTopoPoint(UV parameters, Face face)
+        {
+            XYZ result;
+            UV evaluationParameter = parameters;
+            XYZ point = face.Evaluate(evaluationParameter);
+
+            // If the Z component of the normal at the point is positive, do not include it
+            if (face.ComputeNormal(evaluationParameter).Z > 0 || !face.IsInside(evaluationParameter))
+            {
+                result = null;
+            }
+            else
+            {
+                result = point;
+            }
+
+            return result;
+        }
+    }
+
+    class TopoEditFailurePreprocessor : IFailuresPreprocessor
+    {
+        public FailureProcessingResult PreprocessFailures(FailuresAccessor failuresAccessor)
+        {
+            return FailureProcessingResult.Continue;
         }
     }
 }
