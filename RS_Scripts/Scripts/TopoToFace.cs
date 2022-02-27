@@ -67,7 +67,7 @@ namespace RS_Scripts.Scripts
 
                 // Gets the points from parametrized positions along the face
                 XYZ pointToAdd = null;
-                double faceArea = face.Area / 128; // Division to reduce density
+                double faceArea = face.Area / 96; // Division to reduce density
                 if (faceArea == 0)
                 {
                     faceArea = 20;
@@ -187,7 +187,7 @@ namespace RS_Scripts.Scripts
             XYZ point = face.Evaluate(evaluationParameter);
 
             // If the Z component of the normal at the point is positive, do not include it
-            if (face.ComputeNormal(evaluationParameter).Z > 0 || !face.IsInside(evaluationParameter))
+            if (face.ComputeNormal(evaluationParameter).Z >= 0 || !face.IsInside(evaluationParameter))
             {
                 result = null;
             }
