@@ -25,9 +25,6 @@ namespace RS_Scripts.Scripts
             // Get the points from the toposurface
             IList<XYZ> topoPoints = selectedTopo.GetPoints();
 
-            // [OPTIONAL] Get the boundary of each subregion to store them in memory and recreate them in the new toposurface
-            // TODO
-
             // ReferenceIntersector to detect
             ReferenceIntersector ri = new ReferenceIntersector(
                 selectedFacesIds,

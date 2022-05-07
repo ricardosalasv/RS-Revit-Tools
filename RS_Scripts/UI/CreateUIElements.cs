@@ -1,11 +1,7 @@
 ﻿using Autodesk.Revit.UI;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 
 namespace RS_Scripts.UI
@@ -19,24 +15,31 @@ namespace RS_Scripts.UI
 
             // Creating the Ribbon tab and Panel
             application.CreateRibbonTab("RS Scripts");
-            RibbonPanel UtilitiesPanel = application.CreateRibbonPanel("RS Scripts", "Utilities");
+            RibbonPanel CurtainPanelsPanel = application.CreateRibbonPanel("RS Scripts", "Curtain Panels");
             RibbonPanel SitePanel = application.CreateRibbonPanel("RS Scripts", "Site");
 
             // Pushbuttons
             // Topo To Face
-            var topoToFacePushButton = new PushButtonData("topoToFacePushButton", "Topo To Face", assemblyPath, "RS_Scripts.Scripts.TopoToFace");
+            var topoToFacePushButtonData = new PushButtonData("topoToFacePushButton", "Topo To Face", assemblyPath, "RS_Scripts.Scripts.TopoToFace");
             var topoToFaceIconPath = GetIconUriFromAssemblyLocation(assemblyPath, "icon_TopoToFace.png");
             var topoToFaceIcon = new BitmapImage(topoToFaceIconPath);
-            topoToFacePushButton.LargeImage = topoToFaceIcon;
+            topoToFacePushButtonData.LargeImage = topoToFaceIcon;
 
             // Change Curtain Panel
-            var changeCurtainPanelPushButton = new PushButtonData("changeCurtainPanelPushButton", "Change Curtain Panel", assemblyPath, "RS_Scripts.Scripts.ChangeCurtainPanel");
+            var changeCurtainPanelPushButtonData = new PushButtonData("changeCurtainPanelPushButton", "Change Curtain Panel", assemblyPath, "RS_Scripts.Scripts.ChangeCurtainPanel");
             var changeCurtainPanelIconPath = GetIconUriFromAssemblyLocation(assemblyPath, "icon_ChangeCurtainPanel.png");
             var changeCurtainPanelIcon = new BitmapImage(changeCurtainPanelIconPath);
-            changeCurtainPanelPushButton.LargeImage = changeCurtainPanelIcon;
+            changeCurtainPanelPushButtonData.LargeImage = changeCurtainPanelIcon;
 
-            UtilitiesPanel.AddItem(changeCurtainPanelPushButton);
-            SitePanel.AddItem(topoToFacePushButton);
+            var changeCurtainPanelComboBoxData = new ComboBoxData("changeCurtainPanelComboBox")
+            {
+                ToolTip = "Select the curtain panel type you want to use to replace the existing one."
+            };
+
+            CurtainPanelsPanel.AddItem(changeCurtainPanelPushButtonData);
+            InitializedUIElements.ChangeCurtainPanelComboBox = CurtainPanelsPanel.AddItem(changeCurtainPanelComboBoxData) as ComboBox;
+
+            SitePanel.AddItem(topoToFacePushButtonData);
         }
 
         public static Uri GetIconUriFromAssemblyLocation(string assemblyPath, string iconName)
