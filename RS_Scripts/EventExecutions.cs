@@ -1,5 +1,9 @@
-﻿using Autodesk.Revit.DB.Events;
+﻿using Autodesk.Revit.DB;
+using Autodesk.Revit.DB.Events;
+using Autodesk.Revit.UI;
 using Autodesk.Revit.UI.Events;
+using RS_Scripts.lib;
+using RS_Scripts.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,6 +22,7 @@ namespace RS_Scripts
             AppState.ControlledApplication.DocumentSynchronizedWithCentral += new EventHandler<DocumentSynchronizedWithCentralEventArgs>(SynchronizedExecutions);
             AppState.ControlledApplication.DocumentOpened += new EventHandler<DocumentOpenedEventArgs>(OpenedExecutions);
             AppState.ControlledApplication.DocumentClosed += new EventHandler<DocumentClosedEventArgs>(ClosedExecutions);
+            AppState.UIControlledApplication.Idling += new EventHandler<IdlingEventArgs>(IdlingExecutions);
         }
 
         // We are putting the actual methods as part of a wrapper method subscribed to each event to ensure a sequential execution
@@ -53,7 +58,11 @@ namespace RS_Scripts
         // Methods in this class
         private static void ReplaceChangeCurtainPanelComboBox(IdlingEventArgs args)
         {
-
+            Document doc = AppState.CurrentUIApplication.ActiveUIDocument.Document;
+            if (Helpers.DocumentHasBeenSwitched(doc))
+            {
+                InitializedUIElements.ChangeCurtainPanelComboBox.GetItems();
+            }
         }
     }
 }

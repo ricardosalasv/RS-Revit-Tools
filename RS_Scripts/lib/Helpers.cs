@@ -26,5 +26,26 @@ namespace RS_Scripts.lib
 
             return centroid;
         }
+
+        public static bool DocumentHasBeenSwitched(Document doc)
+        {
+            string filename = GetCurrentFilename(doc);
+
+            if (AppState.CurrentProjectFilename != filename)
+            {
+                AppState.CurrentProjectFilename = filename;
+
+                return true;
+            }
+
+            return false;
+        }
+
+        public static string GetCurrentFilename(Document doc)
+        {
+            string filename = doc.PathName;
+
+            return filename;
+        }
     }
 }

@@ -16,6 +16,7 @@ namespace RS_Scripts
         public static UIControlledApplication UIControlledApplication { get; set; }
         public static ControlledApplication ControlledApplication { get; set; }
         public static UIApplication CurrentUIApplication { get; set; }
+        public static string CurrentProjectFilename { get; set; }
         public static View3D QCView3D { get; set; }
 
         // This will store all initialized WPFWindows for Revit API External Events to work with

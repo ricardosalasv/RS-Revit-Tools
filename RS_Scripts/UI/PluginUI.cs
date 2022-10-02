@@ -6,9 +6,9 @@ using System.Windows.Media.Imaging;
 
 namespace RS_Scripts.UI
 {
-    internal class CreateUIElements
+    internal class PluginUI
     {
-        public static void Create(UIControlledApplication application)
+        public static void Build(UIControlledApplication application)
         {
             // Getting running assembly location
             string assemblyPath = Assembly.GetExecutingAssembly().Location;
