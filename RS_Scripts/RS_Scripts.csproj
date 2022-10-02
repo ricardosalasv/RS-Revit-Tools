@@ -51,12 +51,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AppState.cs" />
+    <Compile Include="EventExecutions.cs" />
     <Compile Include="ExtApp.cs" />
+    <Compile Include="lib\Temp3DView.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Scripts\ChangeCurtainPanel.cs" />
-    <Compile Include="Scripts\Helpers.cs" />
+    <Compile Include="lib\Helpers.cs" />
     <Compile Include="Scripts\TopoToFace.cs" />
-    <Compile Include="UI\CreateUIElements.cs" />
+    <Compile Include="UI\PluginUI.cs" />
+    <Compile Include="UI\InitializedUIElements.cs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
