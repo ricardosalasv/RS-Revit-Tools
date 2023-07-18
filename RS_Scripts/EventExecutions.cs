@@ -52,17 +52,6 @@ namespace RS_Scripts
 
         private static void IdlingExecutions(object sender, IdlingEventArgs args)
         {
-
-        }
-
-        // Methods in this class
-        private static void ReplaceChangeCurtainPanelComboBox(IdlingEventArgs args)
-        {
-            Document doc = AppState.CurrentUIApplication.ActiveUIDocument.Document;
-            if (Helpers.DocumentHasBeenSwitched(doc))
-            {
-                InitializedUIElements.ChangeCurtainPanelComboBox.GetItems();
-            }
         }
     }
 }

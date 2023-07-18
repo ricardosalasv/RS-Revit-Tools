@@ -38,7 +38,6 @@ namespace RS_Scripts.Scripts
 
             foreach (Face face in selectedFaces)
             {
-
                 foreach (XYZ point in topoPoints)
                 {
                     try
@@ -64,21 +63,17 @@ namespace RS_Scripts.Scripts
 
                 // Gets the points from parametrized positions along the face
                 XYZ pointToAdd = null;
-                double faceArea = face.Area / 96; // Division to reduce density
-                if (faceArea == 0)
-                {
-                    faceArea = 20;
-                }
-                double resolution = 1 / faceArea;
+                double resolution = 0.2;
 
                 double maxDimension = GetFaceMaximumDimension(face, out double uDim, out double vDim);
-                for (double u = 0; u <= maxDimension; u += resolution)
+                for (double u = 0; u <= uDim; u += resolution)
                 {
-                    for (double v = 0; v <= maxDimension; v += resolution)
+                    for (double v = 0; v <= vDim; v += resolution)
                     {
                         pointToAdd = EvaluateAndAddTopoPoint(new UV(u, v), face);
 
-                        if (pointToAdd == null) { continue; }
+                        if (pointToAdd == null) continue;
+
                         newPoints.Add(pointToAdd);
                     }
                 }
@@ -88,9 +83,8 @@ namespace RS_Scripts.Scripts
             // Cleaning points that share the same X and Y coordinates. Prioritize removing points in a higher position
             IList<XYZ> cleanedPoints = newPoints.OrderBy(p => p.Z)
                 .GroupBy(p => new { p.X, p.Y })
-                .Select(grp => grp.First()).ToList();
-
-            var test = cleanedPoints.GroupBy(p => new { p.X, p.Y });
+                .Select(grp => grp.First())
+                .ToList();
 
             TopographyEditScope topoEdit = new TopographyEditScope(doc, "Conform Topo to Faces");
             topoEdit.Start(selectedTopo.Id);
@@ -122,19 +116,9 @@ namespace RS_Scripts.Scripts
             u = bb.Max.U - bb.Min.U;
             v = bb.Max.V - bb.Min.V;
 
-            if (u > v)
-            {
-                max = u;
-            }
-            else
-            {
-                max = v;
-            }
+            max = u > v ? u : v;
 
-            if (max == 0)
-            {
-                max = 50;
-            }
+            max = max == 0 ? 50 : max;
 
             return max;
         }
@@ -179,21 +163,21 @@ namespace RS_Scripts.Scripts
 
         private XYZ EvaluateAndAddTopoPoint(UV parameters, Face face)
         {
-            XYZ result;
-            UV evaluationParameter = parameters;
-            XYZ point = face.Evaluate(evaluationParameter);
+            XYZ point = face.Evaluate(parameters);
 
             // If the Z component of the normal at the point is positive, do not include it
-            if (face.ComputeNormal(evaluationParameter).Z >= 0 || !face.IsInside(evaluationParameter))
+            if (face.ComputeNormal(parameters).Z >= 0)
             {
-                result = null;
+                return null;
+            }
+            else if (!face.IsInside(parameters))
+            {
+                return null;
             }
             else
             {
-                result = point;
+                return point;
             }
-
-            return result;
         }
     }
 
