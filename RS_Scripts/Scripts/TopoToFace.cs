@@ -66,9 +66,9 @@ namespace RS_Scripts.Scripts
                 double resolution = 0.2;
 
                 double maxDimension = GetFaceMaximumDimension(face, out double uDim, out double vDim);
-                for (double u = 0; u <= uDim; u += resolution)
+                for (double u = uDim * -1; u <= uDim; u += resolution)
                 {
-                    for (double v = 0; v <= vDim; v += resolution)
+                    for (double v = vDim * -1; v <= vDim; v += resolution)
                     {
                         pointToAdd = EvaluateAndAddTopoPoint(new UV(u, v), face);
 
@@ -125,7 +125,7 @@ namespace RS_Scripts.Scripts
 
         private IList<Face> SelectFaces(Document doc, Selection sel, out IList<ElementId> facesIds)
         {
-            TaskDialog.Show("Instructions", "Please select the faces you want the topography to conform to...");
+            //TaskDialog.Show("Instructions", "Please select the faces you want the topography to conform to...");
 
             try
             {
@@ -150,7 +150,7 @@ namespace RS_Scripts.Scripts
 
         private TopographySurface SelectTopo(Document doc, Selection sel)
         {
-            TaskDialog.Show("Instructions", "Please select the toposurface (the main toposurface, no subregions or pads)...");
+            //TaskDialog.Show("Instructions", "Please select the toposurface (the main toposurface, no subregions or pads)...");
 
             Reference surfaceRef = sel.PickObject(ObjectType.Element, "Please select the toposurface");
 
@@ -166,11 +166,11 @@ namespace RS_Scripts.Scripts
             XYZ point = face.Evaluate(parameters);
 
             // If the Z component of the normal at the point is positive, do not include it
-            if (face.ComputeNormal(parameters).Z >= 0)
+            if (!face.IsInside(parameters))
             {
                 return null;
             }
-            else if (!face.IsInside(parameters))
+            else if (face.ComputeNormal(parameters).Z >= 0)
             {
                 return null;
             }
