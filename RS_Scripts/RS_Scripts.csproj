@@ -59,6 +59,7 @@
     <Compile Include="Scripts\ChangeCurtainPanel.cs" />
     <Compile Include="lib\Helpers.cs" />
     <Compile Include="Scripts\TopoToFace.cs" />
+    <Compile Include="Scripts\WalkthroughsExporter.cs" />
     <Compile Include="UI\PluginUI.cs" />
     <Compile Include="UI\InitializedUIElements.cs" />
   </ItemGroup>

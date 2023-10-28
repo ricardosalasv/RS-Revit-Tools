@@ -5,6 +5,7 @@ using Autodesk.Revit.UI;
 using Autodesk.Revit.UI.Selection;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -163,21 +164,7 @@ namespace RS_Scripts.Scripts
 
         private XYZ EvaluateAndAddTopoPoint(UV parameters, Face face)
         {
-            XYZ point = face.Evaluate(parameters);
-
-            // If the Z component of the normal at the point is positive, do not include it
-            if (!face.IsInside(parameters))
-            {
-                return null;
-            }
-            else if (face.ComputeNormal(parameters).Z >= 0)
-            {
-                return null;
-            }
-            else
-            {
-                return point;
-            }
+            return face.IsInside(parameters) ? face.Evaluate(parameters) : null;
         }
     }
 

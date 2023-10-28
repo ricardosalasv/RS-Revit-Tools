@@ -17,6 +17,7 @@ namespace RS_Scripts.UI
             application.CreateRibbonTab("RS Scripts");
             RibbonPanel CurtainPanelsPanel = application.CreateRibbonPanel("RS Scripts", "Curtain Panels");
             RibbonPanel SitePanel = application.CreateRibbonPanel("RS Scripts", "Site");
+            RibbonPanel ExporterPanels = application.CreateRibbonPanel("RS Scripts", "Exporters");
 
             // Pushbuttons
             // Topo To Face
@@ -35,6 +36,14 @@ namespace RS_Scripts.UI
             {
                 ToolTip = "Select the curtain panel type you want to use to replace the existing one."
             };
+
+            // Change Curtain Panel
+            var exportWalkthroughsPushButtonData = new PushButtonData("exportWalkthroughsPushButton", "Export Walkthroughs", assemblyPath, "RS_Scripts.Scripts.WalkthroughsExporter");
+            var exportWalkthroughsIconPath = GetIconUriFromAssemblyLocation(assemblyPath, "icon_ChangeCurtainPanel.png");
+            var exportWalkthroughsIcon = new BitmapImage(exportWalkthroughsIconPath);
+            exportWalkthroughsPushButtonData.LargeImage = changeCurtainPanelIcon;
+
+            ExporterPanels.AddItem(exportWalkthroughsPushButtonData);
 
             CurtainPanelsPanel.AddItem(changeCurtainPanelPushButtonData);
             InitializedUIElements.ChangeCurtainPanelComboBox = CurtainPanelsPanel.AddItem(changeCurtainPanelComboBoxData) as ComboBox;
