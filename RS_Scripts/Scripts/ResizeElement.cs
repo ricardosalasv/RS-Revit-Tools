@@ -72,19 +72,19 @@ namespace RS_Scripts.Scripts
             {
                 tt.Start();
                 FamilySymbol familySymbol = ((FamilyInstance)element).Symbol;
-                double originalWidth = CustomUnitUtils.ConvertInternalUnitsToMillimeters(doc, familySymbol.LookupParameter("Width").AsDouble());
+                double originalWidth = CustomUnitUtils.ConvertInternalUnitsToMillimeters(familySymbol.LookupParameter("Width").AsDouble());
 
                 double originalHeight = 9999;
                 double originalLength = 9999;
                 try
                 {
-                    originalHeight = CustomUnitUtils.ConvertInternalUnitsToMillimeters(doc, familySymbol.LookupParameter("Height").AsDouble());
+                    originalHeight = CustomUnitUtils.ConvertInternalUnitsToMillimeters(familySymbol.LookupParameter("Height").AsDouble());
 
                     if (originalHeight == 9999) throw new Exception();
                 }
                 catch
                 {
-                    originalLength = CustomUnitUtils.ConvertInternalUnitsToMillimeters(doc, familySymbol.LookupParameter("Length").AsDouble());
+                    originalLength = CustomUnitUtils.ConvertInternalUnitsToMillimeters(familySymbol.LookupParameter("Length").AsDouble());
                 }
 
                 string newName = familySymbol.Name.Replace(originalWidth.ToString(), width);
@@ -95,16 +95,16 @@ namespace RS_Scripts.Scripts
                 
                 FamilySymbol newSymbol = familySymbol.Duplicate(newName) as FamilySymbol;
 
-                newSymbol.LookupParameter("Width").Set(CustomUnitUtils.ConvertMillimetersToInternalUnits(doc, double.Parse(width)));
+                newSymbol.LookupParameter("Width").Set(CustomUnitUtils.ConvertMillimetersToInternalUnits(double.Parse(width)));
                 if (!String.IsNullOrEmpty(heightLength))
                 {
                     try
                     {
-                        newSymbol.LookupParameter("Height").Set(CustomUnitUtils.ConvertMillimetersToInternalUnits(doc, double.Parse(heightLength)));
+                        newSymbol.LookupParameter("Height").Set(CustomUnitUtils.ConvertMillimetersToInternalUnits(double.Parse(heightLength)));
                     }
                     catch
                     {
-                        newSymbol.LookupParameter("Length").Set(CustomUnitUtils.ConvertMillimetersToInternalUnits(doc, double.Parse(heightLength)));
+                        newSymbol.LookupParameter("Length").Set(CustomUnitUtils.ConvertMillimetersToInternalUnits(double.Parse(heightLength)));
                     }
                 }
 

@@ -9,24 +9,16 @@ namespace RS_Scripts.Utils
 {
     internal class CustomUnitUtils
     {
-        public static double ConvertInternalUnitsToMillimeters(Document doc, double valueInInternalUnits)
+        public static double ConvertInternalUnitsToMillimeters(double valueInInternalUnits)
         {
-            // Get the internal length units of the document
-            DisplayUnitType displayUnitType = doc.GetUnits().GetFormatOptions(UnitType.UT_Length).DisplayUnits;
-
-            // Convert the value from internal units to millimeters
-            double valueInMillimeters = UnitUtils.ConvertFromInternalUnits(valueInInternalUnits, displayUnitType);
+            double valueInMillimeters = UnitUtils.ConvertFromInternalUnits(valueInInternalUnits, UnitTypeId.Millimeters);
 
             return valueInMillimeters;
         }
 
-        public static double ConvertMillimetersToInternalUnits(Document doc, double valueInMillimeters)
+        public static double ConvertMillimetersToInternalUnits(double valueInMillimeters)
         {
-            // Get the internal length units of the document
-            DisplayUnitType displayUnitType = doc.GetUnits().GetFormatOptions(UnitType.UT_Length).DisplayUnits;
-
-            // Convert the value from millimeters to internal units
-            double valueInInternalUnits = UnitUtils.ConvertToInternalUnits(valueInMillimeters, displayUnitType);
+            double valueInInternalUnits = UnitUtils.ConvertToInternalUnits(valueInMillimeters, UnitTypeId.Millimeters);
 
             return valueInInternalUnits;
         }

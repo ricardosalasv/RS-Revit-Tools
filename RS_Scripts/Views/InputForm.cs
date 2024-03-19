@@ -1,11 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace RS_Scripts.Views
@@ -17,6 +10,8 @@ namespace RS_Scripts.Views
         public InputForm()
         {
             InitializeComponent();
+
+            this.KeyDown += InputForm_KeyDown;
         }
 
         private void InputForm_Load(object sender, EventArgs e)
@@ -24,6 +19,20 @@ namespace RS_Scripts.Views
         }
 
         private void okButton_Click(object sender, EventArgs e)
+        {
+            ConfirmData();
+        }
+
+        private void InputForm_KeyDown(object sender, KeyEventArgs e)
+        {
+            // Check if Enter key is pressed
+            if (e.KeyCode == Keys.Enter)
+            {
+                ConfirmData();
+            }
+        }
+
+        private void ConfirmData()
         {
             // Retrieve data from the form
             UserData = textBox1.Text;
