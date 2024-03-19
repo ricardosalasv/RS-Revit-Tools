@@ -19,5 +19,16 @@ namespace RS_Scripts.Utils
 
             return valueInMillimeters;
         }
+
+        public static double ConvertMillimetersToInternalUnits(Document doc, double valueInMillimeters)
+        {
+            // Get the internal length units of the document
+            DisplayUnitType displayUnitType = doc.GetUnits().GetFormatOptions(UnitType.UT_Length).DisplayUnits;
+
+            // Convert the value from millimeters to internal units
+            double valueInInternalUnits = UnitUtils.ConvertToInternalUnits(valueInMillimeters, displayUnitType);
+
+            return valueInInternalUnits;
+        }
     }
 }

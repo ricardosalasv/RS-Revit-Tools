@@ -44,13 +44,15 @@ namespace RS_Scripts.UI
             var resizeElementIcon = new BitmapImage(resizeElementIconPath);
             resizeElementPushButtonData.LargeImage = resizeElementIcon;
 
-            // Export Walkthrough
-            var exportWalkthroughsPushButtonData = new PushButtonData("exportWalkthroughsPushButton", "Export Walkthroughs", assemblyPath, "RS_Scripts.Scripts.WalkthroughsExporter");
-            var exportWalkthroughsIconPath = GetIconUriFromAssemblyLocation(assemblyPath, "icon_ChangeCurtainPanel.png");
-            var exportWalkthroughsIcon = new BitmapImage(exportWalkthroughsIconPath);
-            exportWalkthroughsPushButtonData.LargeImage = changeCurtainPanelIcon;
+            ElementsPanel.AddItem(resizeElementPushButtonData);
 
-            ExporterPanel.AddItem(exportWalkthroughsPushButtonData);
+            // Export Walkthrough
+            //var exportWalkthroughsPushButtonData = new PushButtonData("exportWalkthroughsPushButton", "Export Walkthroughs", assemblyPath, "RS_Scripts.Scripts.WalkthroughsExporter");
+            //var exportWalkthroughsIconPath = GetIconUriFromAssemblyLocation(assemblyPath, "icon_ChangeCurtainPanel.png");
+            //var exportWalkthroughsIcon = new BitmapImage(exportWalkthroughsIconPath);
+            //exportWalkthroughsPushButtonData.LargeImage = changeCurtainPanelIcon;
+
+            //ExporterPanel.AddItem(exportWalkthroughsPushButtonData);
 
             CurtainPanelsPanel.AddItem(changeCurtainPanelPushButtonData);
             InitializedUIElements.ChangeCurtainPanelComboBox = CurtainPanelsPanel.AddItem(changeCurtainPanelComboBoxData) as ComboBox;
