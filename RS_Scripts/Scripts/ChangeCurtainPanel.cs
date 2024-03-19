@@ -18,78 +18,97 @@ namespace RS_Scripts.Scripts
         {
             Document doc = commandData.Application.ActiveUIDocument.Document;
 
-            var currentSelection = commandData.Application.ActiveUIDocument.Selection.GetElementIds();
+            // Get project parameters
+            var _params = new FilteredElementCollector(doc)
+                .WhereElementIsNotElementType()
+                .OfClass(typeof(ParameterElement))
+                .Cast<ParameterElement>()
+                .Where(x => x.GetDefinition().ParameterGroup == BuiltInParameterGroup.PG_IFC);
 
-            if (currentSelection.Count == 0)
-            {
-                TaskDialog.Show("Information", "You must have selected at least one curtain panel to perform the change.");
+            var elementIds = _params.Select(x => x.Id).ToList();
+            //var currentSelection = commandData.Application.ActiveUIDocument.Selection.GetElementIds();
 
-                return Result.Succeeded;
-            }
+            //if (currentSelection.Count == 0)
+            //{
+            //    TaskDialog.Show("Information", "You must have selected at least one curtain panel to perform the change.");
+
+            //    return Result.Succeeded;
+            //}
 
             Transaction tt = new Transaction(doc, "Replace curtain panel");
             tt.Start();
 
-            // Creating temporary 3D view to run the ReferenceIntersector within
-            Temp3DView.Create(doc);
+            doc.Delete(elementIds);
 
-            // Getting the type of panel that will replace the existing one
-            IList<Element> panelTypes = new FilteredElementCollector(doc)
-                .OfCategory(BuiltInCategory.OST_Doors)
-                .WhereElementIsElementType()
-                .ToElements();
+            //foreach (ElementId id in elementIds)
+            //{
+            //    try
+            //    {
+            //        doc.Delete(id);
+            //    }
+            //    catch (Exception ex) { }
+            //}
 
-            FamilySymbol selectedPanelType = panelTypes.Select(x => x as FamilySymbol).Where(x => x.Name.ToLower() == "m_door-curtain-wall-single-glass").First();
+            //// Creating temporary 3D view to run the ReferenceIntersector within
+            //Temp3DView.Create(doc);
 
-            // Instancing a ReferenceIntersector to detect the bottom mullion in case the selected curtain panel is a door
-            ElementFilter elementFilter = new ElementCategoryFilter(BuiltInCategory.OST_CurtainWallMullions);
+            //// Getting the type of panel that will replace the existing one
+            //IList<Element> panelTypes = new FilteredElementCollector(doc)
+            //    .OfCategory(BuiltInCategory.OST_Doors)
+            //    .WhereElementIsElementType()
+            //    .ToElements();
 
-            ReferenceIntersector ri = new ReferenceIntersector(elementFilter, FindReferenceTarget.All, Temp3DView.Active);
+            //FamilySymbol selectedPanelType = panelTypes.Select(x => x as FamilySymbol).Where(x => x.Name.ToLower() == "m_door-curtain-wall-single-glass").First();
 
-            foreach (var id in currentSelection)
-            {
-                var element = doc.GetElement(id);
+            //// Instancing a ReferenceIntersector to detect the bottom mullion in case the selected curtain panel is a door
+            //ElementFilter elementFilter = new ElementCategoryFilter(BuiltInCategory.OST_CurtainWallMullions);
 
-                if (element is Panel)
-                {
-                    Panel panel = element as Panel;
+            //ReferenceIntersector ri = new ReferenceIntersector(elementFilter, FindReferenceTarget.All, Temp3DView.Active);
 
-                    // Getting the centroid of the current panel
-                    XYZ centroid = Helpers.GetCentroid(panel);
+            //foreach (var id in currentSelection)
+            //{
+            //    var element = doc.GetElement(id);
 
-                    if (centroid == null)
-                    {
-                        TaskDialog.Show("Error", "An error occured while calculating the centroid of one of the panels.");
-                        continue;
-                    }
+            //    if (element is Panel)
+            //    {
+            //        Panel panel = element as Panel;
 
-                    if (panel.Pinned) panel.Pinned = false;
+            //        // Getting the centroid of the current panel
+            //        XYZ centroid = Helpers.GetCentroid(panel);
 
-                    panel.Symbol = selectedPanelType;
+            //        if (centroid == null)
+            //        {
+            //            TaskDialog.Show("Error", "An error occured while calculating the centroid of one of the panels.");
+            //            continue;
+            //        }
 
-                    if (panel.Category.Name.ToLower() == "doors")
-                    {
-                        ReferenceWithContext riResult = ri.FindNearest(centroid, XYZ.BasisZ.Negate());
+            //        if (panel.Pinned) panel.Pinned = false;
 
-                        Mullion mullion = null;
+            //        panel.Symbol = selectedPanelType;
 
-                        try
-                        {
-                            mullion = doc.GetElement(riResult.GetReference()) as Mullion;
-                        }
-                        catch (Exception)
-                        {
-                            continue;
-                        }
+            //        if (panel.Category.Name.ToLower() == "doors")
+            //        {
+            //            ReferenceWithContext riResult = ri.FindNearest(centroid, XYZ.BasisZ.Negate());
 
-                        if (mullion.Pinned) mullion.Pinned = false;
+            //            Mullion mullion = null;
 
-                        doc.Delete(mullion.Id);
-                    }
-                }
-            }
+            //            try
+            //            {
+            //                mullion = doc.GetElement(riResult.GetReference()) as Mullion;
+            //            }
+            //            catch (Exception)
+            //            {
+            //                continue;
+            //            }
 
-            Temp3DView.Terminate(doc);
+            //            if (mullion.Pinned) mullion.Pinned = false;
+
+            //            doc.Delete(mullion.Id);
+            //        }
+            //    }
+            //}
+
+            //Temp3DView.Terminate(doc);
 
             tt.Commit();
 

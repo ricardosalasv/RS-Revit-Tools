@@ -17,7 +17,8 @@ namespace RS_Scripts.UI
             application.CreateRibbonTab("RS Scripts");
             RibbonPanel CurtainPanelsPanel = application.CreateRibbonPanel("RS Scripts", "Curtain Panels");
             RibbonPanel SitePanel = application.CreateRibbonPanel("RS Scripts", "Site");
-            RibbonPanel ExporterPanels = application.CreateRibbonPanel("RS Scripts", "Exporters");
+            RibbonPanel ExporterPanel = application.CreateRibbonPanel("RS Scripts", "Exporters");
+            RibbonPanel ElementsPanel = application.CreateRibbonPanel("RS Scripts", "Elements");
 
             // Pushbuttons
             // Topo To Face
@@ -37,13 +38,19 @@ namespace RS_Scripts.UI
                 ToolTip = "Select the curtain panel type you want to use to replace the existing one."
             };
 
-            // Change Curtain Panel
+            // Resize element
+            var resizeElementPushButtonData = new PushButtonData("resizeElementsPushButton", "Resize Element", assemblyPath, "RS_Scripts.Scripts.ResizeElement");
+            var resizeElementIconPath = GetIconUriFromAssemblyLocation(assemblyPath, "icon_ResizeElement.png");
+            var resizeElementIcon = new BitmapImage(resizeElementIconPath);
+            resizeElementPushButtonData.LargeImage = resizeElementIcon;
+
+            // Export Walkthrough
             var exportWalkthroughsPushButtonData = new PushButtonData("exportWalkthroughsPushButton", "Export Walkthroughs", assemblyPath, "RS_Scripts.Scripts.WalkthroughsExporter");
             var exportWalkthroughsIconPath = GetIconUriFromAssemblyLocation(assemblyPath, "icon_ChangeCurtainPanel.png");
             var exportWalkthroughsIcon = new BitmapImage(exportWalkthroughsIconPath);
             exportWalkthroughsPushButtonData.LargeImage = changeCurtainPanelIcon;
 
-            ExporterPanels.AddItem(exportWalkthroughsPushButtonData);
+            ExporterPanel.AddItem(exportWalkthroughsPushButtonData);
 
             CurtainPanelsPanel.AddItem(changeCurtainPanelPushButtonData);
             InitializedUIElements.ChangeCurtainPanelComboBox = CurtainPanelsPanel.AddItem(changeCurtainPanelComboBoxData) as ComboBox;
